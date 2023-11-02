@@ -1,5 +1,9 @@
+#Compiled binary file
+a4
+
 # Prerequisites
 *.d
+
 
 # Object files
 *.o
