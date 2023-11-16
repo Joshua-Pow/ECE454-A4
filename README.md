@@ -25,8 +25,9 @@ The provided C program creates a multi-threaded simulation where each customer i
 
 ### Compilation and Execution
 
-To compile the program, run the following command in the terminal:
+To compile and execute the program, run the following command in the terminal:
 
 ```bash
 make
+./a4.exe
 ```

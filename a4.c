@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <assert.h>
 
 #define NUM_TELLERS 3
 #define NUM_CUSTOMERS 10
@@ -14,6 +15,18 @@ void queue_init(Queue* q) {
   q->head = q->tail = NULL;
   pthread_mutex_init(&q->mutex, NULL);
   sem_init(&q->customers, 0, 0);  // Initialize to 0 because the queue is empty
+}
+
+// Function to print queue object
+
+void printQueue(Queue* q) {
+  printf("Printing Queue\n");
+  Node *tempNode = q->head;
+
+  while(tempNode != NULL){
+    printf("Customer: %d\n", tempNode->customerID);
+    tempNode = tempNode->next;
+  }
 }
 
 // Function to enqueue a customer ID
@@ -89,10 +102,90 @@ void* teller(void* arg) {
   }
   return NULL;
 }
+void test_queue_init(){
+  Queue *q;
+  assert(q->mutex == NULL);
+  assert(q->customers == NULL);
+  queue_init(q);
+  assert(q->mutex != NULL);
+  assert(q->customers != NULL);
+}
+
+void test_enqueue() {
+  Queue *q;
+  Node *tempNode;
+  queue_init(q);
+  // tempNode = q->head;
+  int ids[] = {3, 1, 4, 1, 5};
+
+  for (int i = 0; i < 5; i++) {
+    enqueue(q, ids[i]);
+  }
+  // for (int i = 0; i < 5; i++) {
+  //   assert(tempNode->customerID == ids[i]);
+  //   tempNode = tempNode->next;
+  // }
+}
+
+void test_dequeue() {
+  Queue *q;
+  Node *tempNode;
+  queue_init(q);
+  tempNode = q->head;
+  int ids[] = {3, 1, 4, 1, 5};
+  
+  for (int i = 0; i < 5; i++) {
+    enqueue(q, ids[i]);
+  }
+
+  dequeue(q);
+  assert(q->tail->customerID == 1);
+  dequeue(q);
+  assert(q->tail->customerID == 4);
+  enqueue(q, 14);
+  assert(q->tail->customerID == 14);
+
+  for(int i = 0; i < 3; i++) {
+    assert(tempNode->customerID == ids[i]);
+    tempNode = tempNode->next;
+  }
+  
+  assert(tempNode->customerID == 14);
+}
+
+void test_queue_destroy() {
+  Queue *q1, *q2;
+  queue_init(q1);
+  queue_init(q2);
+  int ids[] = {3, 1, 4, 1, 5};
+  
+  assert(q1->mutex != NULL);
+  assert(q1->customers != NULL);
+  queue_destroy(q1);
+  assert(q1->mutex == NULL);
+  assert(q1->customers == NULL);
+
+  for (int i = 0; i < 5; i++) {
+    enqueue(q2, ids[i]);
+  }
+  queue_destroy(q2);
+  assert(q2->head == NULL);
+  assert(q2->tail == NULL);
+}
 
 int main() {
-  srand(time(NULL));  // Seed the random number generator
+  // Tests
+  test_queue_init();
+  printf("Queue_init tests passed\n");
+  test_enqueue();
+  printf("enqueue tests passed\n");
+  test_dequeue();
+  printf("dequeue tests passed\n");
+  test_queue_destroy();
+  printf("queue_destroy tests passed\n");
+  printf("All Tests Passed\n");
 
+  srand(time(NULL));  // Seed the random number generator
   queue_init(&customerQueue);  // Initialize the customer queue
 
   pthread_t tellers[NUM_TELLERS];
