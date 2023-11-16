@@ -13,8 +13,8 @@
 // Function to initialize the queue
 void queue_init(Queue* q) {
   q->head = q->tail = NULL;
-  pthread_mutex_init(&q->mutex, NULL);
-  sem_init(&q->customers, 0, 0);  // Initialize to 0 because the queue is empty
+  pthread_mutex_init(&(q->mutex), NULL);
+  sem_init(&(q->customers), 0, 0);  // Initialize to 0 because the queue is empty
 }
 
 // Function to print queue object
@@ -81,6 +81,7 @@ void queue_destroy(Queue* q) {
     q->head = q->head->next;
     free(temp);
   }
+  q->tail = NULL;
 }
 
 Queue customerQueue;
@@ -103,74 +104,87 @@ void* teller(void* arg) {
   return NULL;
 }
 void test_queue_init(){
-  Queue *q;
-  assert(q->mutex == NULL);
-  assert(q->customers == NULL);
-  queue_init(q);
-  assert(q->mutex != NULL);
-  assert(q->customers != NULL);
+  Queue q;
+  int value;
+  assert(q.mutex == NULL);
+  assert(q.customers == NULL);
+  queue_init(&q);
+  sem_getvalue(&(q.customers), &value);
+  assert(value == 0);
+  assert(q.mutex != NULL);
 }
 
 void test_enqueue() {
-  Queue *q;
+  Queue q;
   Node *tempNode;
-  queue_init(q);
-  // tempNode = q->head;
+  queue_init(&q);
   int ids[] = {3, 1, 4, 1, 5};
 
   for (int i = 0; i < 5; i++) {
-    enqueue(q, ids[i]);
+    enqueue(&q, ids[i]);
   }
-  // for (int i = 0; i < 5; i++) {
-  //   assert(tempNode->customerID == ids[i]);
-  //   tempNode = tempNode->next;
-  // }
-}
-
-void test_dequeue() {
-  Queue *q;
-  Node *tempNode;
-  queue_init(q);
-  tempNode = q->head;
-  int ids[] = {3, 1, 4, 1, 5};
-  
+  tempNode = q.head;
   for (int i = 0; i < 5; i++) {
-    enqueue(q, ids[i]);
-  }
-
-  dequeue(q);
-  assert(q->tail->customerID == 1);
-  dequeue(q);
-  assert(q->tail->customerID == 4);
-  enqueue(q, 14);
-  assert(q->tail->customerID == 14);
-
-  for(int i = 0; i < 3; i++) {
     assert(tempNode->customerID == ids[i]);
     tempNode = tempNode->next;
   }
+}
+
+void test_dequeue() {
+  Queue q;
+  Node *tempNode;
+  queue_init(&q);
+  int ids[] = {3, 1, 4, 1, 5};
   
-  assert(tempNode->customerID == 14);
+  for (int i = 0; i < 5; i++) {
+    enqueue(&q, ids[i]);
+  }
+
+  dequeue(&q);
+  assert(q.head->customerID == 1);
+  dequeue(&q);
+  assert(q.head->customerID == 4);
+  enqueue(&q, 14);
+  assert(q.tail->customerID == 14);
+  printf("asjkdfal\n");
+
+  tempNode = q.head;
+  for(int i = 0; i < 3; i++) {
+    assert(tempNode->customerID == ids[i+2]);
+    tempNode = tempNode->next;
+  }
+  printf("asjkdfal\n");
+  dequeue(&q);
+  dequeue(&q);
+  dequeue(&q);
+  printf("asjkddfsafdasfal\n");
+  assert(q.head->customerID == 14);
+  dequeue(&q);
+  assert(q.head == NULL);
+  
 }
 
 void test_queue_destroy() {
-  Queue *q1, *q2;
-  queue_init(q1);
-  queue_init(q2);
+  Queue q1, q2;
+  int value;
+  queue_init(&q1);
+  queue_init(&q2);
   int ids[] = {3, 1, 4, 1, 5};
   
-  assert(q1->mutex != NULL);
-  assert(q1->customers != NULL);
-  queue_destroy(q1);
-  assert(q1->mutex == NULL);
-  assert(q1->customers == NULL);
+  
+  sem_getvalue(&(q1.customers), &value);
+  assert(value == 0);
+  assert(q1.mutex != NULL);
+  queue_destroy(&q1);
+  assert(q1.mutex == -1);
+  assert(q1.customers == NULL);
 
   for (int i = 0; i < 5; i++) {
-    enqueue(q2, ids[i]);
+    enqueue(&q2, ids[i]);
   }
-  queue_destroy(q2);
-  assert(q2->head == NULL);
-  assert(q2->tail == NULL);
+  queue_destroy(&q2);
+  assert(q2.head == NULL);
+  assert(q2.tail == NULL);
 }
 
 int main() {
